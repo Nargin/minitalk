@@ -10,11 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "minitalk.h"
 
 int	main(void)
 {
-	sheesh
+	ft_printf("PID : %d\n", getpid());
+	return (0);
 }

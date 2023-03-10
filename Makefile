@@ -1,18 +1,26 @@
-SRC = main.c ./printf/ft_print.c ./printf/ft_printf.c
+SRCS = server.c ./printf/ft_print.c ./printf/ft_printf.c
+SRCC = client.c ./printf/ft_print.c ./printf/ft_printf.c
 
-OBJS = $(SRC:.c=.o)
+OBJS = $(SRCS:.c=.o)
+
+OBJC = $(SRCC:.c=.o)
 
 RM = rm -f
 
-NAME = minitalk
+SERVER = server
 
-all : $(NAME)
+CLIENT = client
+
+all : $(SERVER) $(CLIENT)
 
 .c.o:
 		gcc -Wall -Werror -Wextra -I ./ -I ./printf -c $< -o $(<:.c=.o)
 
-$(NAME) :	$(OBJS)
-		gcc -Wall -Werror -Wextra ${OBJS} -I./ -o ${NAME}
+$(SERVER) :	$(OBJS)
+		gcc -Wall -Werror -Wextra ${OBJS} -I./ -o ${SERVER}
+
+$(SERVER) :	$(OBJC)
+		gcc -Wall -Werror -Wextra ${OBJC} -I./ -o ${CLIENT}
 
 clean :
 		$(RM) $(OBJS)

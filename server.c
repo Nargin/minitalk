@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: romaurel <rxonrgn@gmail.com>               +#+  +:+       +#+        */
+/*   By: romaurel <romaurel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 15:51:05 by romaurel          #+#    #+#             */
-/*   Updated: 2023/03/10 15:51:05 by romaurel         ###   ########.fr       */
+/*   Updated: 2023/03/30 20:21:22 by romaurel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ int	main(void)
 {
 	ft_printf("PID : %d\n", getpid());
 	while (1)
-	{
-	}
+		pause();
 	return (0);
 }

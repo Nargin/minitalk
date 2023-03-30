@@ -1,5 +1,6 @@
-SRCS = server.c ./printf/ft_print.c ./printf/ft_printf.c
-SRCC = client.c ./printf/ft_print.c ./printf/ft_printf.c
+PRNT = ./ft_printf/ft_print.c ./ft_printf/ft_printf.c
+SRCS = server.c
+SRCC = client.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -14,19 +15,20 @@ CLIENT = client
 all : $(SERVER) $(CLIENT)
 
 .c.o:
-		gcc -Wall -Werror -Wextra -I ./ -I ./printf -c $< -o $(<:.c=.o)
+		gcc -Wall -Werror -Wextra -I ./ -I ./ft_printf -c $< -o $(<:.c=.o)
 
-$(SERVER) :	$(OBJS)
-		gcc -Wall -Werror -Wextra ${OBJS} -I./ -o ${SERVER}
+$(SERVER) :	$(OBJS) $(PRNT)
+		gcc -Wall -Werror -Wextra $(OBJS) $(PRNT) -I./ -o $(SERVER)
 
-$(SERVER) :	$(OBJC)
-		gcc -Wall -Werror -Wextra ${OBJC} -I./ -o ${CLIENT}
+$(CLIENT) :	$(OBJC) $(PRNT)
+		gcc -Wall -Werror -Wextra $(OBJC) $(PRNT) -I./ -o $(CLIENT)
 
 clean :
-		$(RM) $(OBJS)
+		$(RM) $(OBJS) $(OBJC)
 
 fclean :	clean
-			$(RM) $(NAME)
+			$(RM) $(SERVER)
+			$(RM) $(CLIENT)
 
 re:			fclean all
 

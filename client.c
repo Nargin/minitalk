@@ -6,73 +6,87 @@
 /*   By: romaurel <rxonrgn@gmail.com>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/08 00:58:14 by romaurel          #+#    #+#             */
-/*   Updated: 2023/04/08 02:02:48 by robin            ###   ########.fr       */
+/*   Updated: 2023/04/12 00:34:14 by robin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	receive(int sig)
-{
-	if (sig == SIGUSR1)
-		exit(write(1, "Message received\n", 17));
-}
+int	g_wait = 1;
 
-void	transmit(int pid, char *str)
+int	ft_atoi(const char *str)
 {
-	int		i;
-	char	j;
-
-	while (*str)
-	{
-		i = 8;
-		j = *str++;
-		while (i--)
-		{
-			if (j >> i & 1)
-				kill(pid, SIGUSR1);
-			else
-				kill(pid, SIGUSR2);
-			usleep(400);
-		}
-	}
-	i = 8;
-	while (i--)
-	{
-		kill(pid, SIGUSR2);
-		usleep(400);
-	}
-}
-
-int	ft_atoi(char *str)
-{
-	int i;
-	int sign;
-	int res;
+	int	i;
+	int	neg;
+	int	nb;
 
 	i = 0;
-	sign = 1;
-	res = 0;
+	neg = 1;
+	nb = 0;
 	while (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13))
 		i++;
+	if (str[i] == '-')
+		neg = -1;
 	if (str[i] == '-' || str[i] == '+')
-		if (str[i++] == '-')
-			sign = -1;
+		i++;
 	while (str[i] >= '0' && str[i] <= '9')
-		res = res * 10 + (str[i++] - '0');
-	return (res * sign);
+		nb = nb * 10 + str[i++] - '0';
+	return (nb * neg);
 }
 
-
-
-int main(int argc, char **argv)
+void	confirm(int signal)
 {
-	if (argc != 3 || !*argv[2])
-		exit(write(1, "Usage: ./client [server PID] [message]\n", 39));
-	signal(SIGUSR1, receive);
-	signal(SIGUSR2, receive);
-	transmit(ft_atoi(argv[1]), argv[2]);
-	while (1)
-		pause();
+	if (signal == SIGUSR1)
+		g_wait = 1;
+	else if (signal == SIGUSR2)
+		g_wait = 2;
+}
+
+void	send_char(int pid, char c)
+{
+	int	bit;
+
+	bit = 0;
+	while (bit < 8)
+	{
+		g_wait = 0;
+		if ((c & 0x01 << bit) != 0)
+		{
+			if (kill(pid, SIGUSR1) == -1)
+				exit(write(1, "Error\n", 6));
+		}
+		else
+		{
+			if (kill(pid, SIGUSR2) == -1)
+				exit(write(1, "Error\n", 6));
+		}
+		bit++;
+		while (1)
+		{
+			if (g_wait == 1)
+				break ;
+			else if (g_wait == 2)
+				exit(write(1, "MESSAGE sent !\n", 15));
+		}
+	}
+}
+
+int	main(int ac, char **av)
+{
+	int	pid;
+	int	i;
+
+	if (ac != 3)
+		exit(write(1, "./client <PID> <STRING>\n", 24));
+	if (ft_atoi(av[1]) <= 0)
+		exit(write(1, "Wrong PID\n", 10));
+	signal(SIGUSR1, confirm);
+	signal(SIGUSR2, confirm);
+	pid = atoi(av[1]);
+	i = 0;
+	while (av[2][i])
+		send_char(pid, av[2][i++]);
+	send_char(pid, '\n');
+	send_char(pid, '\0');
 	return (0);
 }

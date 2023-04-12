@@ -12,7 +12,9 @@
 
 #include "minitalk.h"
 
-void	ft_putnbr(int n)
+char	*g_str = NULL;
+
+void	putnbr(int n)
 {
 	char	c;
 
@@ -22,50 +24,84 @@ void	ft_putnbr(int n)
 		n = -n;
 	}
 	if (n > 9)
-		ft_putnbr(n / 10);
+		putnbr(n / 10);
 	c = n % 10 + '0';
 	write(1, &c, 1);
 }
 
-void	receive(int sig, siginfo_t *info, void *context)
+int	ft_strlen(char *str)
 {
-	static pid_t	pid;
-	static int	i = 0;
-	static char	c = 0;
+	int	i;
 
-	if (!pid)
-		pid = info->si_pid;
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
+char	*update(char *str, char c)
+{
+	char	*tmp;
+	int		i;
+
+	tmp = (char *)malloc(sizeof(char) * ft_strlen(str) + 2);
+	i = 0;
+	while (str[i])
+	{
+		tmp[i] = str[i];
+		i++;
+	}
+	tmp[i] = c;
+	tmp[i + 1] = 0;
+	free(str);
+	return (tmp);
+}
+
+void	ft_get_sig(int sig, siginfo_t *info, void *context)
+{
+	static int	i = 0;
+	static int	bit = 0;
+
 	(void)context;
 	if (sig == SIGUSR1)
-		c |= 1;
-	if (++i == 8)
+		i |= (0x01 << bit);
+	bit++;
+	if (bit == 8)
 	{
-		i = 0;
-		if (!c)
+		g_str = update(g_str, i);
+		if (i == '\0')
 		{
-			kill(pid, SIGUSR1);
-			pid = 0;
-			return ;
+			write(1, g_str, ft_strlen(g_str));
+			g_str[0] = 0;
+			kill(info->si_pid, SIGUSR2);
 		}
-		write(1, &c, 1);
-		c = 0;
+		else
+			kill(info->si_pid, SIGUSR1);
+		i = 0;
+		bit = 0;
 	}
 	else
-		c <<= 1;
+		kill(info->si_pid, SIGUSR1);
 }
 
 int	main(void)
 {
 	struct sigaction	sa;
+	int					pid;
 
-	write(1, "Server PID: ", 12);
-	ft_putnbr(getpid());
-	write(1, "\n", 1);
+	g_str = malloc(1);
+	g_str[0] = 0;
+	pid = getpid();
 	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = receive;
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
+	sigemptyset(&sa.sa_mask);
+	sa.sa_sigaction = ft_get_sig;
+	write(1, "Server PID: ", 12);
+	putnbr(pid);
+	write(1, "\n", 1);
 	while (1)
-		pause();
+	{
+		sigaction(SIGUSR1, &sa, NULL);
+		sigaction(SIGUSR2, &sa, NULL);
+	}
 	return (0);
 }
